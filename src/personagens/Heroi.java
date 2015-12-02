@@ -32,9 +32,20 @@ public class Heroi extends Personagem {
 	 */
 	private int calcularPeso() {
 		int pesoTotal = 0;
+		
+		// calcula peso dos itens
 		for (Item item : mochila.values()) {
 			pesoTotal += item.pegaPeso();
 		}
+		
+		// calcula peso das moedas
+		if(pegaMoedas() < 1000){
+			pesoTotal+= 1;
+		} else {
+			int n = pegaMoedas() / 1000;  
+			pesoTotal += Math.round(n);	// arredonda pra cima
+		}
+		
 		return pesoTotal;
 	}
 
@@ -45,7 +56,11 @@ public class Heroi extends Personagem {
 	 */
 	public boolean inserirItemMochila(Item item) {
 		if (calcularPeso() + item.pegaPeso() <= limiteDePeso) {
-			mochila.put(item.pegaNome(), item);
+			if(mochila.containsKey(item.pegaNome())){
+				System.out.println("Você já possúi esse item.");
+				return false;
+			}
+				mochila.put(item.pegaNome(), item);
 			return true;
 		} else {
 			System.out.println("\n# O " + pegaNome() + " nao pode carregar mais itens na mochila!\n");
@@ -91,7 +106,9 @@ public class Heroi extends Personagem {
 			returnString += " " + itens;
 		}
 		returnString += "\nMoedas: " + pegaMoedas();
+		returnString += "\nPeso: " + calcularPeso();
 		System.out.println(returnString);
+		
 	}
 
 	/**
@@ -107,7 +124,7 @@ public class Heroi extends Personagem {
 		int dadoDoHeroi = sorte(6);
 		int dadoDoOponente = sorte(1);
 		int atkAdicional = ataqueAdicional();
-		System.out.println("ataque adicional: " + atkAdicional);
+		System.out.println("(ataque adicional: " + atkAdicional + ")");
 
 		if (dadoDoHeroi == dadoDoOponente) {
 			System.out.println("Empate!");
@@ -118,14 +135,15 @@ public class Heroi extends Personagem {
 		} else if (dadoDoHeroi > dadoDoOponente) {
 			incremento(); 
 			
-			int i;
-			for(i=1; i<=atkAdicional; i++){
+			int j = 0;
+			for(int i=0; i<=atkAdicional; i++){
 				oponente.decremento();
+				j++;
 				
 				if(oponente.estaMorto())
 					break;
 			}
-			System.out.println("Você hitou: " + (i) + " pontos");
+			System.out.println("Você hitou: " + (j) + " pontos");
 			
 		} else { // Quando o oponente vence
 			oponente.incremento();
@@ -153,7 +171,6 @@ public class Heroi extends Personagem {
 	
 	/**
 	 * Imprime dados do herói.
-	 * @return 
 	 */
 	public void imprimir() {
 		System.out.println("\n+-------------------------");

@@ -15,9 +15,8 @@ import personagens.Personagem;
 import personagens.Vilao;
 
 /**
- * Classe principal do jogo.
- * Foi baseado na classe principal do Jogo World of Zuul,
- * criado por Michal Kolling and David J. Barnes, em 2008.03.30
+ * Classe principal do jogo. Foi baseado na classe principal do Jogo World of
+ * Zuul, criado por Michal Kolling and David J. Barnes, em 2008.03.30
  * 
  * @author Wagner F. de Oliveira Jr
  * @version 1/12/2015
@@ -28,22 +27,21 @@ public class Game {
 	private Room currentRoom;
 	private Heroi heroi;
 
-	Stack<Personagem> formigas = new Stack<Personagem>();
-	Stack<Personagem> vespas = new Stack<Personagem>();
-	Stack<Personagem> aranhas = new Stack<Personagem>();
-	Stack<Personagem> cobras = new Stack<Personagem>();
-	Stack<Personagem> oncas = new Stack<Personagem>();
+	private Stack<Personagem> formigas = new Stack<Personagem>();
+	private Stack<Personagem> vespas = new Stack<Personagem>();
+	private Stack<Personagem> aranhas = new Stack<Personagem>();
+	private Stack<Personagem> cobras = new Stack<Personagem>();
+	private Stack<Personagem> oncas = new Stack<Personagem>();
 
 	/**
-	 * Cria o jogo.
-	 * Recebe o nome do jogador para servir como nome do herói.
+	 * Cria o jogo. Recebe o nome do jogador para servir como nome do herói.
 	 * 
 	 */
 	public Game() {
 		createRooms();
 		parser = new Parser();
 
-		System.out.println("Digite seu nome> ");
+		System.out.println("Digite o nome de seu personagem> ");
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		String name = scanner.nextLine();
@@ -65,7 +63,7 @@ public class Game {
 			Command command = parser.getCommand();
 			finished = processCommand(command);
 		}
-		System.out.println("Thank you for playing.  Good bye.");
+		System.out.println("Obrigado por jogar.");
 	}
 
 	/**
@@ -73,7 +71,7 @@ public class Game {
 	 */
 	private void printWelcome() {
 		System.out.println();
-		System.out.println("Bem vindo ao Mantiqueira Adventure! - Vencendo as 7 Quedas");
+		System.out.println("Bem vindo, " + heroi.pegaNome() + ", ao Mantiqueira Adventure! - Vencendo as 7 Quedas.");
 		System.out.println("Mantiqueira Adventure é um jogo estremamente simples, sem qualquer \n"
 				+ "funcionalidades revolucionárias ou intenção de ser legal, criado \n"
 				+ "apenas para aumentar skills em Programação Orientada a Objeto.");
@@ -188,11 +186,12 @@ public class Game {
 	}
 
 	/**
-	 * Analiza o parâmetro para selecionar o personagem a atacar.
-	 * Se o oponente estiver morto, os itens de seu inventário caem ao chão, junto com suas 
+	 * Analiza o parâmetro para selecionar o personagem a atacar. Se o oponente
+	 * estiver morto, os itens de seu inventário caem ao chão, junto com suas
 	 * moedas
 	 * 
-	 * @param command Oponente a ser atacado.
+	 * @param command
+	 *            Oponente a ser atacado.
 	 * 
 	 */
 	private void attack(Command command) {
@@ -233,9 +232,11 @@ public class Game {
 	}
 
 	/**
-	 * Função que pega um item ou moedas no chão do lugar em que está e o coloca na mochila.
+	 * Função que pega um item ou moedas no chão do lugar em que está e o coloca
+	 * na mochila.
 	 * 
-	 * @param command Item a ser pego
+	 * @param command
+	 *            Item a ser pego
 	 */
 	private void pick(Command command) {
 		if (!command.hasSecondWord()) {
@@ -268,11 +269,13 @@ public class Game {
 
 			if (item != null) {
 
-				if (item.pegaNome() == "Cachorro")
+				if (item.pegaNome() == "Cachorro") // seta flag de item especial
 					heroi.adicionaCachorro();
 
-				heroi.inserirItemMochila(item);
-				itensNoChao.remove(itemStr);
+				if (heroi.inserirItemMochila(item)) // se o item foi adionado o
+													// remove do chão
+					itensNoChao.remove(itemStr);
+
 				return;
 			} else {
 				// heroi.inserirItem() printa que não pegou o item
@@ -283,6 +286,7 @@ public class Game {
 
 	/**
 	 * Remove um item da mochila e o coloca no chão.
+	 * 
 	 * @param command
 	 */
 	private void drop(Command command) {
@@ -308,6 +312,7 @@ public class Game {
 
 	/**
 	 * Usa um item instâneo que esteja na mochila do personagem.
+	 * 
 	 * @param command
 	 */
 	private void use(Command command) {
@@ -321,8 +326,8 @@ public class Game {
 	}
 
 	/**
-	 *  Metodo main.
-	 *  Cria um jogo e chama seu método play().
+	 * Metodo main. Cria um jogo e chama seu método play().
+	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -433,15 +438,15 @@ public class Game {
 			Room room = quedas.get(i);
 			room.inserirPersonagem(formigas.pop());
 
-			if (i == 0)		// a partir da segunda queda...
+			if (i == 0) // a partir da segunda queda...
 				continue;
 			room.inserirPersonagem(aranhas.pop());
-			
-			if (i == 1)  	// a partir da terceira queda...
+
+			if (i == 1) // a partir da terceira queda...
 				continue;
 			room.inserirPersonagem(oncas.pop());
 		}
-		
+
 		// acamps
 		acamps1.inserirPersonagem(vespas.pop());
 		acamps1.inserirPersonagem(vespas.pop());
@@ -451,11 +456,12 @@ public class Game {
 		acamps2.inserirPersonagem(vespas.pop());
 		acamps2.inserirPersonagem(aranhas.pop());
 		acamps2.inserirPersonagem(cobras.pop());
-		
+
 		// ITEM ESPECIAL
 		sala2.inserirItemChao(new Permanente("Cachorro", "Seu fiel amigo. (+1 dano extra)", 0, 1, 0));
-		inicio.inserirItemChao(new Permanente("cajado", "cajado", 0, 5, 0));
-		currentRoom = inicio; // start game outside
+		acamps2.inserirItemChao(new Permanente("blusa", "Uma blusa. (+3 defesa)", 40, 0, 3));
+		
+		currentRoom = inicio;
 	}
 
 	/**

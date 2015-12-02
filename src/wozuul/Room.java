@@ -5,7 +5,6 @@ import java.util.Set;
 import itens.Item;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import personagens.Personagem;
