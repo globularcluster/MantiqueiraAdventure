@@ -1,7 +1,6 @@
 package wozuul;
 
 import java.util.Scanner;
-import java.util.StringTokenizer;
 
 /**
  * This class is part of the "World of Zuul" application. 
@@ -47,7 +46,8 @@ public class Parser
         inputLine = reader.nextLine();
 
         // Find up to two words on the line.
-        Scanner tokenizer = new Scanner(inputLine);
+        @SuppressWarnings("resource")
+		Scanner tokenizer = new Scanner(inputLine);
         if(tokenizer.hasNext()) {
             word1 = tokenizer.next();      // get first word
             if(tokenizer.hasNext()) {

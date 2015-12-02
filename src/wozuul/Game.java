@@ -1,31 +1,26 @@
 package wozuul;
 
-import java.io.BufferedReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Stack;
 
-import itens.*;
+import itens.Instantaneo;
+import itens.Item;
 import itens.Permanente;
 import personagens.Heroi;
 import personagens.Personagem;
 import personagens.Vilao;
 
 /**
- * This class is the main class of the "World of Zuul" application.
- * "World of Zuul" is a very simple, text based adventure game. Users can walk
- * around some scenery. That's all. It should really be extended to make it more
- * interesting!
+ * Classe principal do jogo.
+ * Foi baseado na classe principal do Jogo World of Zuul,
+ * criado por Michal Kolling and David J. Barnes, em 2008.03.30
  * 
- * To play this game, create an instance of this class and call the "play"
- * method.
- * 
- * This main class creates and initialises all the others: it creates all rooms,
- * creates the parser and starts the game. It also evaluates and executes the
- * commands that the parser returns.
- * 
- * @author Michael Kolling and David J. Barnes
- * @version 2008.03.30
+ * @author Wagner F. de Oliveira Jr
+ * @version 1/12/2015
  */
 
 public class Game {
@@ -33,59 +28,27 @@ public class Game {
 	private Room currentRoom;
 	private Heroi heroi;
 
+	Stack<Personagem> formigas = new Stack<Personagem>();
+	Stack<Personagem> vespas = new Stack<Personagem>();
+	Stack<Personagem> aranhas = new Stack<Personagem>();
+	Stack<Personagem> cobras = new Stack<Personagem>();
+	Stack<Personagem> oncas = new Stack<Personagem>();
+
 	/**
-	 * Create the game and initialise its internal map.
+	 * Cria o jogo.
+	 * Recebe o nome do jogador para servir como nome do herói.
+	 * 
 	 */
 	public Game() {
 		createRooms();
 		parser = new Parser();
-		
+
 		System.out.println("Digite seu nome> ");
+		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		String name = scanner.nextLine();
-		
+
 		heroi = new Heroi(name, 10, 10, 100);
-	}
-
-	/**
-	 * Create all the rooms and link their exits together.
-	 */
-	private void createRooms() {
-		Room outside, theatre, pub, lab, office;
-
-		// create the rooms
-		outside = new Room("outside the main entrance of the university");
-		theatre = new Room("in a lecture theatre");
-		pub = new Room("in the campus pub");
-		lab = new Room("in a computing lab");
-		office = new Room("in the computing admin office");
-
-		// initialise room exits
-		outside.setExit("east", theatre);
-		outside.setExit("south", lab);
-		outside.setExit("west", pub);
-
-		theatre.setExit("west", outside);
-
-		pub.setExit("east", outside);
-
-		lab.setExit("north", outside);
-		lab.setExit("east", office);
-		Personagem capanga1 = new Vilao("c1", 1, 1);
-		Personagem capanga2 = new Vilao("c2", 5, 3);
-		capanga1.adicionaMoedas(50);
-		((Vilao) capanga1).inserirItemMochila(new Permanente("espada", "espada foda",10, 2, 0));
-		((Vilao) capanga1).inserirItemMochila(new Instantaneo("agua", "agua da boa", 1, 2));
-
-		outside.inserirPersonagem(capanga1);
-		outside.inserirPersonagem(capanga2);
-		outside.inserirItemChao(new Permanente("Cachorro", "seu fiel amigo", 0, 0, 0));
-
-		office.setExit("west", lab);
-		Personagem coringa = new Vilao("Coringa", 5, 5);
-		office.inserirPersonagem(coringa);
-
-		currentRoom = outside; // start game outside
 	}
 
 	/**
@@ -177,7 +140,6 @@ public class Game {
 		parser.showCommands();
 		System.out.println();
 	}
-	
 
 	/**
 	 * Try to go to one direction. If there is an exit, enter the new room,
@@ -196,7 +158,7 @@ public class Game {
 		Room nextRoom = currentRoom.getExit(direction);
 
 		if (nextRoom == null) {
-			System.out.println("There is no door!");
+			System.out.println("Não existe saída aí!");
 		} else {
 			currentRoom = nextRoom;
 			System.out.println(currentRoom.getLongDescription());
@@ -211,21 +173,32 @@ public class Game {
 	 */
 	private boolean quit(Command command) {
 		if (command.hasSecondWord()) {
-			System.out.println("Quit what?");
+			System.out.println("Sair o que?");
 			return false;
 		} else {
 			return true; // signal that we want to quit
 		}
 	}
 
+	/**
+	 * Imprime uma visao detalhada do lugar em que o personagem está.
+	 */
 	private void look() {
 		System.out.println(currentRoom.getLongDescription());
 	}
 
+	/**
+	 * Analiza o parâmetro para selecionar o personagem a atacar.
+	 * Se o oponente estiver morto, os itens de seu inventário caem ao chão, junto com suas 
+	 * moedas
+	 * 
+	 * @param command Oponente a ser atacado.
+	 * 
+	 */
 	private void attack(Command command) {
 		if (!command.hasSecondWord()) {
 			// if there is no second word, we don't know where to go...
-			System.out.println("Attack who?");
+			System.out.println("Atacar quem?");
 			return;
 		}
 
@@ -259,9 +232,14 @@ public class Game {
 		}
 	}
 
+	/**
+	 * Função que pega um item ou moedas no chão do lugar em que está e o coloca na mochila.
+	 * 
+	 * @param command Item a ser pego
+	 */
 	private void pick(Command command) {
 		if (!command.hasSecondWord()) {
-			System.out.println("Pick what?");
+			System.out.println("Pegar o que?");
 			return;
 		}
 
@@ -289,10 +267,10 @@ public class Game {
 			Item item = itensNoChao.get(itemStr);
 
 			if (item != null) {
-				
-				if(item.pegaNome() == "Cachorro")
+
+				if (item.pegaNome() == "Cachorro")
 					heroi.adicionaCachorro();
-				
+
 				heroi.inserirItemMochila(item);
 				itensNoChao.remove(itemStr);
 				return;
@@ -303,6 +281,10 @@ public class Game {
 		}
 	}
 
+	/**
+	 * Remove um item da mochila e o coloca no chão.
+	 * @param command
+	 */
 	private void drop(Command command) {
 		if (!command.hasSecondWord()) {
 			System.out.println("Drop what?");
@@ -313,10 +295,10 @@ public class Game {
 		Item item = heroi.removerItemMochila(itemStr);
 
 		if (item != null) {
-			
+
 			if (item.pegaNome() == "Cachorro")
 				heroi.removeCachorro();
-			
+
 			currentRoom.inserirItemChao(item);
 			System.out.println(currentRoom.pegaItensChaoString());
 		} else {
@@ -324,9 +306,13 @@ public class Game {
 		}
 	}
 
+	/**
+	 * Usa um item instâneo que esteja na mochila do personagem.
+	 * @param command
+	 */
 	private void use(Command command) {
 		if (!command.hasSecondWord()) {
-			System.out.println("Use what?");
+			System.out.println("Usar o que?");
 			return;
 		}
 
@@ -334,8 +320,197 @@ public class Game {
 		heroi.utilizar(itemS);
 	}
 
+	/**
+	 *  Metodo main.
+	 *  Cria um jogo e chama seu método play().
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		Game game = new Game();
 		game.play();
 	}
+
+	/**
+	 * Cria as salas do jogo, adiciona personagens e items.
+	 */
+	private void createRooms() {
+		Room queda1, queda2, queda3, queda4, queda5, queda6, queda7, acamps1, acamps2;
+		Room inicio, sala1, sala2, sala3, sala4, sala5, sala6, sala7, sala8, sala9, sala10;
+
+		List<Room> salas = new ArrayList<Room>();
+		List<Room> quedas = new ArrayList<Room>();
+
+		inicio = new Room("no fundo de um pequeno penhasco");
+		queda1 = new Room("na primeira queda");
+		quedas.add(queda1);
+		queda2 = new Room("na segunda queda");
+		quedas.add(queda2);
+		queda3 = new Room("na terceira queda");
+		quedas.add(queda3);
+		queda4 = new Room("na quarta queda");
+		quedas.add(queda4);
+		queda5 = new Room("na quinta queda");
+		quedas.add(queda5);
+		queda6 = new Room("na sexta queda");
+		quedas.add(queda6);
+		queda7 = new Room("na sétima e última queda");
+		quedas.add(queda7);
+		sala1 = new Room("a caminho da primeira queda");
+		salas.add(sala1);
+		sala2 = new Room("onde seu cachorro está! Pegue-o para te acompanhar");
+		salas.add(sala2);
+		sala3 = new Room("a caminho da segunda queda");
+		salas.add(sala3);
+		sala4 = new Room("a caminho da terceira queda");
+		salas.add(sala4);
+		sala5 = new Room("a caminho da quarta queda");
+		salas.add(sala5);
+		sala6 = new Room("a caminho da quarta queda");
+		salas.add(sala6);
+		sala7 = new Room("sem saída!");
+		salas.add(sala7);
+		sala8 = new Room("a caminho da sexta queda");
+		salas.add(sala8);
+		sala9 = new Room("a caminho da sétima queda");
+		salas.add(sala9);
+		sala10 = new Room("a caminho da sétima queda");
+		salas.add(sala10);
+		acamps1 = new Room("no primeiro lugar para acampar, procure algum item");
+		acamps2 = new Room("no segundo lugar para acampar, procure algum item");
+
+		inicio.setExit("oeste", sala1);
+		queda1.setExit("norte", sala3);
+		queda1.setExit("sul", sala1);
+		queda2.setExit("norte", sala4);
+		queda2.setExit("leste", sala3);
+		queda3.setExit("leste", sala5);
+		queda3.setExit("oeste", sala4);
+		queda4.setExit("oeste", sala6);
+		queda4.setExit("leste", sala5);
+		queda5.setExit("leste", acamps2);
+		queda5.setExit("sul", sala6);
+		queda6.setExit("norte", sala9);
+		queda6.setExit("leste", sala8);
+		queda7.setExit("sul", sala10);
+
+		acamps1.setExit("oeste", sala4);
+		acamps1.setExit("leste", sala7);
+		acamps2.setExit("norte", sala8);
+		acamps2.setExit("oeste", queda5);
+
+		sala1.setExit("norte", queda1);
+		sala1.setExit("leste", inicio);
+		sala2.setExit("oeste", sala3);
+		sala3.setExit("leste", sala2);
+		sala3.setExit("oeste", queda2);
+		sala3.setExit("sul", queda1);
+		sala4.setExit("oeste", acamps1);
+		sala4.setExit("sul", queda2);
+		sala4.setExit("leste", queda3);
+		sala5.setExit("norte", queda4);
+		sala5.setExit("oeste", queda3);
+		sala6.setExit("norte", queda5);
+		sala6.setExit("leste", queda4);
+		sala7.setExit("oeste", acamps2);
+		sala8.setExit("oeste", queda6);
+		sala8.setExit("sul", acamps2);
+		sala9.setExit("norte", sala10);
+		sala9.setExit("sul", queda6);
+		sala10.setExit("norte", queda7);
+		sala10.setExit("sul", sala9);
+
+		createVillains();
+
+		// salas
+		for (int i = 0; i < 10; i++) {
+			Room room = salas.get(i);
+			room.inserirPersonagem(formigas.pop());
+			room.inserirPersonagem(vespas.pop());
+		}
+
+		// quedas
+		for (int i = 0; i < 7; i++) {
+			Room room = quedas.get(i);
+			room.inserirPersonagem(formigas.pop());
+
+			if (i == 0)		// a partir da segunda queda...
+				continue;
+			room.inserirPersonagem(aranhas.pop());
+			
+			if (i == 1)  	// a partir da terceira queda...
+				continue;
+			room.inserirPersonagem(oncas.pop());
+		}
+		
+		// acamps
+		acamps1.inserirPersonagem(vespas.pop());
+		acamps1.inserirPersonagem(vespas.pop());
+		acamps1.inserirPersonagem(aranhas.pop());
+		acamps1.inserirPersonagem(cobras.pop());
+		acamps2.inserirPersonagem(vespas.pop());
+		acamps2.inserirPersonagem(vespas.pop());
+		acamps2.inserirPersonagem(aranhas.pop());
+		acamps2.inserirPersonagem(cobras.pop());
+		
+		// ITEM ESPECIAL
+		sala2.inserirItemChao(new Permanente("Cachorro", "Seu fiel amigo. (+1 dano extra)", 0, 1, 0));
+		inicio.inserirItemChao(new Permanente("cajado", "cajado", 0, 5, 0));
+		currentRoom = inicio; // start game outside
+	}
+
+	/**
+	 * Cria os openentes do jogo, para ser adicionado nas salas.
+	 */
+	private void createVillains() {
+
+		// um para cada sala e cada queda
+		for (int i = 0; i < 17; i++) {
+			Personagem formiga = new Vilao("formiga", 2, 1);
+			formiga.adicionaMoedas(50);
+			((Vilao) formiga).inserirItemMochila(new Instantaneo("agua", "um gole de água. (+1 vida)", 10, 1));
+
+			formigas.push(formiga);
+		}
+
+		// um para cada sala e dois para ccda acamps
+		for (int i = 0; i < 14; i++) {
+			Personagem vespa = new Vilao("vespa", 5, 2);
+			vespa.adicionaMoedas(100);
+			((Vilao) vespa).inserirItemMochila(new Instantaneo("banana", "Uma banana. (+2 vida)", 20, 2));
+			((Vilao) vespa).inserirItemMochila(new Permanente("graveto", "Um graveto. (+2 ataque)", 30, 2, 0));
+
+			vespas.push(vespa);
+		}
+
+		// da segunda a setima queda e acamps
+		for (int i = 0; i < 8; i++) {
+			Personagem aranha = new Vilao("aranha", 10, 3);
+			aranha.adicionaMoedas(150);
+			((Vilao) aranha).inserirItemMochila(new Instantaneo("banana", "Uma banana. (+2 vida)", 20, 2));
+
+			aranhas.push(aranha);
+		}
+
+		// cada acamps
+		for (int i = 0; i < 2; i++) {
+			Personagem cobra = new Vilao("cobra", 15, 4);
+			cobra.adicionaMoedas(200);
+			((Vilao) cobra).inserirItemMochila(new Permanente("cajado", "Um cajado. (+5 ataque)", 40, 5, 0));
+			((Vilao) cobra).inserirItemMochila(new Instantaneo("agua", "um gole de água. (+1 vida)", 10, 1));
+
+			cobras.push(cobra);
+		}
+
+		// da terceira a setima queda
+		for (int i = 0; i < 5; i++) {
+			Personagem onca = new Vilao("onca", 25, 10);
+			onca.adicionaMoedas(300);
+			((Vilao) onca).inserirItemMochila(new Instantaneo("peixe", "Um peixe. (+3 vida)", 30, 3));
+			((Vilao) onca).inserirItemMochila(new Permanente("bota", "Uma bota. (+1 defesa)", 50, 0, 1));
+
+			oncas.push(onca);
+		}
+
+	}
+
 }

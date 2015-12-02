@@ -4,17 +4,32 @@ import java.util.Set;
 
 import itens.*;
 
+/**
+ * Classe Herói. O personagem que o jogador irá controlar através do jogo.
+ * @author Wagner
+ */
 public class Heroi extends Personagem {
 	private int energiaMaxima;
 	private int limiteDePeso;
 	private boolean cachorro;
 
+	/**
+	 * Construtor do Herói.
+	 * @param nome	Nome do personagem.
+	 * @param energia	Energia atual do personagem.
+	 * @param energiaMaxima Energia máxima do Herói.	
+	 * @param limiteDePeso	Seu limite de peso.
+	 */
 	public Heroi(String nome, int energia, int energiaMaxima, int limiteDePeso) {
 		super(nome, energia);
 		this.energiaMaxima = energiaMaxima;
 		this.limiteDePeso = limiteDePeso;
 	}
 
+	/**
+	 * Calcula o peso atual da mochila.
+	 * @return Inteiro informando o peso.
+	 */
 	private int calcularPeso() {
 		int pesoTotal = 0;
 		for (Item item : mochila.values()) {
@@ -23,6 +38,11 @@ public class Heroi extends Personagem {
 		return pesoTotal;
 	}
 
+	/**
+	 * Inseri um item na mochila do Herói verificando o peso atual e o peso máximo.
+	 * @param item Item a ser adicionado.
+	 * @return true se foi adicionado, false se não foi possível.
+	 */
 	public boolean inserirItemMochila(Item item) {
 		if (calcularPeso() + item.pegaPeso() <= limiteDePeso) {
 			mochila.put(item.pegaNome(), item);
@@ -61,6 +81,9 @@ public class Heroi extends Personagem {
 		}
 	}
 	
+	/**
+	 * Printa todos itens na mochila.
+	 */
 	public void printMochila(){
 		String returnString = "Mochila: ";
 		Set<String> keys = mochila.keySet();
@@ -72,8 +95,13 @@ public class Heroi extends Personagem {
 	}
 
 	/**
+	 * Realiza um ataque no oponente com base nos dados de cada um.
+	 * Se os dados impatam, a vida de ambos é decrementada.
+	 * Se o herói vence, sua vida é incrementada e o oponente é decrementada. Se o oponente morre, seus
+	 * itens e moedas vão ao chão.
+	 * Se o oponente vence, sua vida é incrementada e do herói decrementada.
 	 * 
-	 * @param oponente
+	 * @param oponente Oponente a ser atacado.
 	 */
 	public void lutar(Personagem oponente) {
 		int dadoDoHeroi = sorte(6);
@@ -91,13 +119,13 @@ public class Heroi extends Personagem {
 			incremento(); 
 			
 			int i;
-			for(i=0; i<=atkAdicional; i++){
+			for(i=1; i<=atkAdicional; i++){
 				oponente.decremento();
 				
 				if(oponente.estaMorto())
 					break;
 			}
-			System.out.println("Você hitou: " + (i+1) + " pontos");
+			System.out.println("Você hitou: " + (i) + " pontos");
 			
 		} else { // Quando o oponente vence
 			oponente.incremento();
@@ -124,7 +152,8 @@ public class Heroi extends Personagem {
 	}
 	
 	/**
-	 * @return imprime dados do herói.
+	 * Imprime dados do herói.
+	 * @return 
 	 */
 	public void imprimir() {
 		System.out.println("\n+-------------------------");
@@ -183,10 +212,16 @@ public class Heroi extends Personagem {
 		return def;
 	}
 	
+	/**
+	 * Se o herói pega seu cachorro.
+	 */
 	public void adicionaCachorro(){
 		cachorro = true;
 	}
 	
+	/**
+	 * Se o herói dropa seu cachorro.
+	 */
 	public void removeCachorro(){
 		cachorro = false;
 	}

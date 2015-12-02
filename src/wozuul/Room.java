@@ -56,6 +56,7 @@ public class Room {
 	public void setExit(String direction, Room neighbor) {
 		exits.put(direction, neighbor);
 	}
+	
 
 	/**
 	 * @return The short description of the room (the one that was defined in
@@ -72,7 +73,7 @@ public class Room {
 	 * @return A long description of this room
 	 */
 	public String getLongDescription() {
-		String returnString = "You are " + description + ".\n" + getExitString() + "\n" + pegaPersonagensString();
+		String returnString = "Você está " + description + ".\n" + getExitString() + "\n" + pegaPersonagensString();
 		
 		if(!chao.isEmpty())
 			returnString += "\n" + pegaItensChaoString();
@@ -96,6 +97,9 @@ public class Room {
 	}
 
 	private String pegaPersonagensString() {
+		if(personagens.isEmpty())
+			return "";
+		
 		String returnString = "Villains:";
 		Set<String> keys = personagens.keySet();
 		for (String nome : keys) {
@@ -128,34 +132,67 @@ public class Room {
 		return exits.get(direction);
 	}
 
+	/**
+	 * Pega um personagem da sala.
+	 * @param nome Nome em string do personagem.
+	 * @return O personagem da classe Personagem.
+	 */
 	public Personagem pegaPersonagem(String nome) {
 		return personagens.get(nome);
 	}
 
+	/**
+	 * Inseri um personagem na sala
+	 * @param personagem Personagem a ser inserido.
+	 */
 	public void inserirPersonagem(Personagem personagem) {
 		personagens.put(personagem.pegaNome(), personagem);
 	}
 
+	/**
+	 * Remove um personagem da sala.
+	 * @param personagem Personagem a ser removido.
+	 */
 	public void removerPersonagem(Personagem personagem) {
 		personagens.remove(personagem.pegaNome());
 	}
 
+	/**
+	 * Inseri uma mochila toda de um Personagem no chão da sala.
+	 * Usado quando um personagem morre.
+	 * @param mochila Mochila do personagem.
+	 */
 	public void inserirMochilaChao(HashMap<String, Item> mochila) {
 		chao.putAll(mochila);
 	}
 	
+	/**
+	 * Dropa um item no chão da sala. Usado quando o herói dropa um item.
+	 * @param item Item a ser dropado.
+	 */
 	public void inserirItemChao(Item item){
 		chao.put(item.pegaNome(), item);		
 	}
 
+	/**
+	 * @return Retorna uma mochila com todos itens no chão.
+	 */
 	public Map<String, Item> pegarItemChao() {
 		return chao;
 	}
 
+	/**
+	 * Insere moedas no chão
+	 * @param n Numero de moedas a ser inserido.
+	 */
 	public void inserirMoedasChao(int n) {
 		moedasNoChao += n;
 	}
 
+	/**
+	 * Pega todas moedas que estão no chão.
+	 * @return Numero que moedas que foi pego.
+	 */
 	public int pegarMoedasChao() {
 		int n = moedasNoChao;
 		moedasNoChao = 0;
@@ -163,6 +200,10 @@ public class Room {
 		return n;
 	}
 
+	/**
+	 * Verifica se há moedas no chão.
+	 * @return true se existe, false se não existe.
+	 */
 	public boolean hasMoedasChao() {
 		if (moedasNoChao == 0)
 			return false;
